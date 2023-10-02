@@ -1,0 +1,87 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Creating a DataFrame with sample data
+data = {
+    'Prod_Name': ['Product A', 'Product B', 'Product C', 'Product D', 'Product E'],
+    'Jan': [1000, 1200, 800, 1500, 900],
+    'Feb': [1100, 1300, 850, 1550, 920],
+    'Mar': [1200, 1400, 870, 1600, 950],
+    'Apr': [1050, 1250, 820, 1520, 890],
+    'May': [1120, 1320, 860, 1580, 910],
+    'Jun': [1150, 1280, 880, 1620, 940]
+}
+
+df = pd.DataFrame(data)
+
+# Calculate total_sell and average_sell
+df['Total_Sell'] = df.iloc[:, 1:].sum(axis=1)
+df['Average_Sell'] = df.iloc[:, 1:-1].mean(axis=1)
+
+# Plot Total Sell and Average Sell
+plt.figure(figsize=(10, 5))
+plt.plot(df['Prod_Name'], df['Total_Sell'], label='Total Sell', marker='o')
+plt.plot(df['Prod_Name'], df['Average_Sell'], label='Average Sell', marker='o')
+plt.xlabel('Products')
+plt.ylabel('Amount')
+plt.title('Product Sales Analysis')
+plt.legend()
+plt.xticks(rotation=45)
+plt.grid(True)
+
+# Save the plot as an image (optional)
+plt.savefig('sales_analysis_plot.png')
+
+# Explain the final DataFrame to CSV
+df.to_csv('sell_analysis.csv', index=False)
+
+
+
+
+
+import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Create SQLite database and sales table
+conn = sqlite3.connect('sales.db')
+cursor = conn.cursor()
+
+# Create the sales table
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS sales (
+        sid INTEGER PRIMARY KEY,
+        year INTEGER,
+        totalsales INTEGER
+    )
+''')
+
+# Insert sample records into the sales table
+cursor.executemany('INSERT INTO sales (year, totalsales) VALUES (?, ?)',
+                   [(2021, 10000), (2021, 12000), (2022, 15000), (2022, 18000), (2023, 20000)])
+
+# Commit changes and close the connection
+conn.commit()
+conn.close()
+
+# Export sales table data to sales.csv file
+conn = sqlite3.connect('sales.db')
+query = 'SELECT * FROM sales'
+df = pd.read_sql_query(query, conn)
+conn.close()
+
+df.to_csv('sales.csv', index=False)
+
+# Plot a bar chart for total sales of each year
+yearly_sales = df.groupby('year')['totalsales'].sum()
+
+plt.figure(figsize=(8, 6))
+yearly_sales.plot(kind='bar', color='skyblue')
+plt.xlabel('Year')
+plt.ylabel('Total Sales')
+plt.title('Total Sales by Year')
+plt.xticks(rotation=0)
+plt.grid(axis='y')
+
+# Save the plot as an image (optional)
+plt.savefig('yearly_sales_plot.png')
